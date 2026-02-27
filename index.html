@@ -3,120 +3,138 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>당진 월간 캘린더</title>
+<title>Tapdong TV Calendar</title>
 
 <style>
+
+/* ================= BASIC ================= */
+
 body {
     margin: 0;
-    font-family: Arial, "Noto Sans KR", sans-serif;
+    font-family: "Segoe UI", Arial, sans-serif;
     background: #0f172a;
     color: white;
 }
 
-/* Layout */
 .container {
     display: grid;
     grid-template-columns: 3fr 1fr;
     height: 100vh;
 }
 
-/* Calendar */
-.calendar-section {
-    padding: 20px;
+/* ================= CALENDAR ================= */
+
+.calendar {
+    padding: 30px;
 }
 
 .header {
     text-align: center;
-    font-size: 36px;
+    font-size: 48px;
     margin-bottom: 20px;
 }
 
-.weekdays, .days {
+.weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-}
-
-/* ✅ Bigger weekday text */
-.weekdays div {
     text-align: center;
+    font-size: 34px;
     font-weight: bold;
-    padding: 10px 0;
-    border-bottom: 1px solid #334155;
-    font-size: 28px;   /* Increased for 75" TV */
 }
 
-/* ✅ Bigger day numbers */
-.days div {
-    min-height: 110px;
-    border: 1px solid #334155;
-    padding: 6px;
-    box-sizing: border-box;
+.weekdays div {
+    padding: 10px;
+}
+
+.sun { color: red; }
+.sat { color: #60a5fa; }
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: 110px;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.day {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 10px;
     position: relative;
-    font-size: 22px;   /* Increased for 75" TV */
+    font-size: 34px;
 }
 
-/* Colors */
-.sun { color: #ff6b6b; }
-.sat { color: #38bdf8; }
+.day.red {
+    color: red;
+}
+
+.holiday {
+    font-size: 16px;
+    margin-top: 4px;
+    color: #f87171;
+}
+
+/* ================= TODAY PULSE ================= */
 
 .today {
-    background: #1e293b;
-    border: 2px solid #38bdf8;
+    border: 4px solid red;
+    box-shadow: 0 0 20px red;
+    animation: pulse 1.8s infinite;
 }
 
-/* Holiday */
-.holiday-text {
-    font-size: 11px;
-    color: #ff6b6b;
-    margin-top: 4px;
+.today::after {
+    content: "";
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 4px solid red;
+    border-radius: 50%;
+    top: 6px;
+    right: 6px;
 }
 
-/* Multi-day shading */
-.holiday-block {
-    background: rgba(255, 77, 77, 0.15);
+@keyframes pulse {
+    0% { box-shadow: 0 0 5px red; }
+    50% { box-shadow: 0 0 25px red; }
+    100% { box-shadow: 0 0 5px red; }
 }
 
-.holiday-start {
-    border-left: 4px solid #ff4d4d;
-}
+/* ================= SIDEBAR ================= */
 
-.holiday-end {
-    border-right: 4px solid #ff4d4d;
-}
-
-/* Info Panel */
-.info-panel {
-    border-left: 2px solid #334155;
-    padding: 20px;
+.sidebar {
+    background: #020617;
+    padding: 30px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    justify-content: space-between;
 }
 
-.card {
-    background: #020617;
-    padding: 15px;
-    border-radius: 12px;
+.clock {
+    text-align: center;
+    font-size: 56px;
+    margin-bottom: 30px;
+}
+
+.info-box {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.info-box h3 {
+    margin: 0 0 10px;
+    font-size: 22px;
     text-align: center;
 }
 
-.time {
-    font-size: 42px;
-    font-weight: bold;
+.info-box p {
+    margin: 5px 0;
+    font-size: 20px;
+    text-align: center;
 }
 
-.temp {
-    font-size: 32px;
-}
-
-.aqi {
-    font-size: 24px;
-}
-
-.location {
-    font-size: 15px;
-    color: #cbd5f5;
-}
 </style>
 </head>
 
@@ -124,47 +142,49 @@ body {
 
 <div class="container">
 
-<!-- Calendar -->
-<div class="calendar-section">
+<!-- ================= CALENDAR ================= -->
 
-<div class="header" id="monthTitle"></div>
+<div class="calendar">
 
-<div class="weekdays">
-    <div class="sun">일</div>
-    <div>월</div>
-    <div>화</div>
-    <div>수</div>
-    <div>목</div>
-    <div>금</div>
-    <div class="sat">토</div>
+    <div class="header" id="monthYear"></div>
+
+    <div class="weekdays">
+        <div class="sun">일</div>
+        <div>월</div>
+        <div>화</div>
+        <div>수</div>
+        <div>목</div>
+        <div>금</div>
+        <div class="sat">토</div>
+    </div>
+
+    <div class="days" id="days"></div>
+
 </div>
 
-<div class="days" id="calendarDays"></div>
+<!-- ================= SIDEBAR ================= -->
 
-</div>
+<div class="sidebar">
 
-<!-- Info -->
-<div class="info-panel">
+    <div>
 
-<div class="card">
-    <div class="time" id="clock"></div>
-    <div id="dateText"></div>
-</div>
+        <div class="clock" id="clock"></div>
 
-<div class="card">
-    <div>🌤️ 날씨</div>
-    <div class="temp" id="weatherTemp">--°C</div>
-    <div id="weatherDesc">불러오는 중…</div>
-</div>
+        <div class="info-box">
+            <h3>🌤 Weather</h3>
+            <p id="weather">Loading...</p>
+        </div>
 
-<div class="card">
-    <div>😷 미세먼지</div>
-    <div class="aqi" id="airQuality">--</div>
-</div>
+        <div class="info-box">
+            <h3>😷 Air Quality</h3>
+            <p id="air">Loading...</p>
+        </div>
 
-<div class="card location">
-    충청남도 당진시
-</div>
+    </div>
+
+    <div style="text-align:center;font-size:14px;opacity:0.6">
+        Dangjin • Korea
+    </div>
 
 </div>
 
@@ -172,220 +192,209 @@ body {
 
 <script>
 
-/* =====================
-   Korean Holidays (2026)
-===================== */
+/* ================= SETTINGS ================= */
 
-const holidays = {
-    "1-1": "신정",
+const API_KEY = "YOUR_OPENWEATHER_API_KEY";
+const CITY = "Dangjin-si";
+const COUNTRY = "KR";
 
-    "2-16": "설날 연휴",
-    "2-17": "설날",
-    "2-18": "설날 연휴",
+/* ================= DATE ================= */
 
-    "3-1": "삼일절",
-    "3-2": "대체휴일",
+let now = new Date();
+let month = now.getMonth();
+let year = now.getFullYear();
 
-    "5-5": "어린이날",
-    "5-24": "부처님오신날",
-    "5-25": "대체휴일",
+const today = new Date();
 
-    "6-6": "현충일",
+/* ================= HOLIDAYS ================= */
 
-    "7-17": "제헌절",
+let holidays = {};
 
-    "8-15": "광복절",
-    "8-17": "대체휴일",
+/* ================= CALENDAR ================= */
 
-    "9-24": "추석 연휴",
-    "9-25": "추석",
-    "9-26": "추석 연휴",
+function renderCalendar() {
 
-    "10-3": "개천절",
-    "10-5": "대체휴일",
-    "10-9": "한글날",
+    const daysEl = document.getElementById("days");
+    const header = document.getElementById("monthYear");
 
-    "12-25": "성탄절"
-};
-
-
-/* =====================
-   Calendar
-===================== */
-
-function generateCalendar() {
-
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    daysEl.innerHTML = "";
 
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
 
-    const container = document.getElementById("calendarDays");
-    const title = document.getElementById("monthTitle");
+    header.textContent =
+        `${year}년 ${month + 1}월`;
 
-    title.innerText = `${year}년 ${month + 1}월`;
-
-    container.innerHTML = "";
-
-    const holidayList = [];
-
+    // Empty cells
     for (let i = 0; i < firstDay; i++) {
-        container.appendChild(document.createElement("div"));
+        daysEl.appendChild(document.createElement("div"));
     }
 
-    for (let d = 1; d <= lastDate; d++) {
-        const key = `${month + 1}-${d}`;
-        if (holidays[key]) {
-            holidayList.push(d);
-        }
-    }
-
-    for (let d = 1; d <= lastDate; d++) {
+    for (let day = 1; day <= lastDate; day++) {
 
         const cell = document.createElement("div");
-        const date = new Date(year, month, d);
-        const key = `${month + 1}-${d}`;
+        cell.classList.add("day");
 
-        if (d === now.getDate() && month === now.getMonth()) {
+        const dateStr =
+            `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+
+        cell.innerHTML = `<div>${day}</div>`;
+
+        // Sunday
+        if ((firstDay + day - 1) % 7 === 0) {
+            cell.classList.add("red");
+        }
+
+        // Today
+        if (
+            day === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()
+        ) {
             cell.classList.add("today");
         }
 
-        if (date.getDay() === 0) cell.classList.add("sun");
-        if (date.getDay() === 6) cell.classList.add("sat");
+        // Holidays
+        if (holidays[dateStr]) {
 
-        cell.innerHTML = `<strong>${d}</strong>`;
+            cell.classList.add("red");
 
-        if (holidays[key]) {
-
-            const prev = holidayList.includes(d - 1);
-            const next = holidayList.includes(d + 1);
-
-            cell.classList.add("holiday-block");
-
-            if (!prev) cell.classList.add("holiday-start");
-            if (!next) cell.classList.add("holiday-end");
-
-            cell.innerHTML += `
-                <div class="holiday-text">
-                    ${holidays[key]}
-                </div>
-            `;
+            holidays[dateStr].forEach(name => {
+                const h = document.createElement("div");
+                h.className = "holiday";
+                h.textContent = name;
+                cell.appendChild(h);
+            });
         }
 
-        container.appendChild(cell);
+        daysEl.appendChild(cell);
     }
 }
 
+/* ================= HOLIDAY API ================= */
 
-/* =====================
-   Clock
-===================== */
+async function loadHolidays() {
+
+    try {
+
+        const url =
+`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        holidays = {};
+
+        data.forEach(h => {
+
+            if (!holidays[h.date]) {
+                holidays[h.date] = [];
+            }
+
+            holidays[h.date].push(h.localName);
+
+        });
+
+        renderCalendar();
+
+    } catch {
+
+        console.log("Holiday API error");
+        renderCalendar();
+    }
+}
+
+/* ================= CLOCK ================= */
 
 function updateClock() {
 
     const now = new Date();
 
-    const h = String(now.getHours()).padStart(2, "0");
-    const m = String(now.getMinutes()).padStart(2, "0");
-    const s = String(now.getSeconds()).padStart(2, "0");
+    const h = String(now.getHours()).padStart(2,"0");
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
 
-    document.getElementById("clock").innerText =
+    document.getElementById("clock").textContent =
         `${h}:${m}:${s}`;
-
-    document.getElementById("dateText").innerText =
-        now.toLocaleDateString("ko-KR", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-        });
 }
 
+setInterval(updateClock, 1000);
+updateClock();
 
-/* =====================
-   Weather & Air
-===================== */
-
-const WEATHER_API_KEY = "fa9fe37b9be14839fe6774643939e974";
-const CITY = "Dangjin-si,KR";
+/* ================= WEATHER ================= */
 
 async function loadWeather() {
 
     try {
 
-        const res = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${WEATHER_API_KEY}&lang=kr`
-        );
+        const url =
+`https://api.openweathermap.org/data/2.5/weather?q=${CITY},${COUNTRY}&appid=${API_KEY}&units=metric`;
 
+        const res = await fetch(url);
         const data = await res.json();
 
-        document.getElementById("weatherTemp").innerText =
-            `${Math.round(data.main.temp)}°C`;
-
-        document.getElementById("weatherDesc").innerText =
-            data.weather[0].description;
+        document.getElementById("weather").textContent =
+            `${data.weather[0].main} / ${data.main.temp.toFixed(1)}°C`;
 
     } catch {
-        console.log("Weather error");
+        document.getElementById("weather").textContent = "Unavailable";
     }
 }
 
+/* ================= AIR ================= */
 
-async function loadAirQuality() {
+async function loadAir() {
 
     try {
 
-        const geo = await fetch(
-            `https://api.openweathermap.org/geo/1.0/direct?q=${CITY}&limit=1&appid=${WEATHER_API_KEY}`
-        );
+        const geo =
+`https://api.openweathermap.org/geo/1.0/direct?q=${CITY},${COUNTRY}&limit=1&appid=${API_KEY}`;
 
-        const g = await geo.json();
+        const geoRes = await fetch(geo);
+        const geoData = await geoRes.json();
 
-        const lat = g[0].lat;
-        const lon = g[0].lon;
+        const lat = geoData[0].lat;
+        const lon = geoData[0].lon;
 
-        const res = await fetch(
-            `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`
-        );
+        const url =
+`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
 
+        const res = await fetch(url);
         const data = await res.json();
 
         const aqi = data.list[0].main.aqi;
 
-        const map = {
-            1: "좋음 😊",
-            2: "보통 🙂",
-            3: "나쁨 😐",
-            4: "매우 나쁨 😷",
-            5: "위험 ☠️"
-        };
+        const levels = ["Good","Fair","Moderate","Poor","Very Poor"];
 
-        document.getElementById("airQuality").innerText =
-            map[aqi];
+        document.getElementById("air").textContent =
+            levels[aqi-1];
 
     } catch {
-        console.log("AQI error");
+
+        document.getElementById("air").textContent = "Unavailable";
     }
 }
 
+/* ================= AUTO MIDNIGHT RELOAD ================= */
 
-/* =====================
-   Init
-===================== */
+function scheduleReload() {
 
-generateCalendar();
-updateClock();
+    const now = new Date();
+    const midnight = new Date();
+
+    midnight.setHours(24,0,0,0);
+
+    setTimeout(() => {
+        location.reload();
+    }, midnight - now);
+}
+
+/* ================= START ================= */
+
+loadHolidays();
 loadWeather();
-loadAirQuality();
-
-setInterval(updateClock, 1000);
-setInterval(generateCalendar, 3600000);
-setInterval(() => {
-    loadWeather();
-    loadAirQuality();
-}, 600000);
+loadAir();
+scheduleReload();
 
 </script>
 
