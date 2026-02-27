@@ -309,7 +309,8 @@ function updateClock() {
 ===================== */
 
 const WEATHER_API_KEY = "fa9fe37b9be14839fe6774643939e974";
-const CITY = "Dangjin-shi";
+const CITY = "Dangjin-si";
+const AIR = "Dangjin,KR"
 
 async function loadWeather() {
 
@@ -338,13 +339,13 @@ async function loadAirQuality() {
     try {
 
         const geo = await fetch(
-            `https://api.openweathermap.org/geo/1.0/direct?q=${CITY}&limit=1&appid=${WEATHER_API_KEY}`
+            `https://api.openweathermap.org/geo/1.0/direct?q=${AIR}&limit=1&appid=${WEATHER_API_KEY}`
         );
 
         const g = await geo.json();
 
-        const lat = g[0].lat;
-        const lon = g[0].lon;
+        const lat = g[36.8890].lat;
+        const lon = g[126.6294].lon;
 
         const res = await fetch(
             `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`
