@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- Auto refresh every 6 hours (TV stability) -->
+<meta http-equiv="refresh" content="21600">
+
+<title>당진 월간 캘린더</title>
+
+<style>
+/* =====================
+   Base
+===================== */
+
+body {
+    margin: 0;
+    font-family: Arial, "Noto Sans KR", sans-serif;
+    background: #0f172a;
+    color: white;
+}
+
+/* =====================
+   Layout
+===================== */
+
+.container {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    height: 100vh;
+}
+
+/* =====================
+   Calendar
+===================== */
+
+.calendar-section {
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.weekdays, .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.weekdays div {
+    text-align: center;
+    font-weight: bold;
+    padding: 10px 0;
+    border-bottom: 1px solid #334155;
+}
+
+.days div {
+    min-height: 100px;
+    border: 1px solid #334155;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.sun {
+    color: #ff4d4d;
+}
+
+.sat {
+    color: #38bdf8;
+}
+
+.holiday {
+    color: #ff4d4d;
+    font-size: 12px;
+}
+
+.today {
+    background: #1e293b;
+    border: 2px solid #38bdf8;
+}
+
+/* =====================
+   Info Panel
+===================== */
+
+.info-panel {
+    border-left: 2px solid #334155;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.card {
+    background: #020617;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.time {
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.temp {
+    font-size: 32px;
+}
+
+.aqi {
+    font-size: 22px;
+}
+
+.location {
+    font-size: 16px;
+    color: #cbd5f5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- =====================
+     Calendar
+===================== -->
+
+<div class="calendar-section">
+
+    <div class="header" id="monthTitle"></div>
+
+    <div class="weekdays">
+        <div class="sun">일</div>
+        <div>월</div>
+        <div>화</div>
+        <div>수</div>
+        <div>목</div>
+        <div>금</div>
+        <div class="sat">토</div>
+    </div>
+
+    <div class="days" id="calendarDays"></div>
+
+</div>
+
+<!-- =====================
+     Right Panel
+===================== -->
+
+<div class="info-panel">
+
+    <div class="card">
+        <div class="time" id="clock"></div>
+        <div id="dateText"></div>
+    </div>
+
+    <div class="card">
+        <div>🌤️ 날씨</div>
+        <div class="temp" id="weatherTemp">--°C</div>
+        <div id="weatherDesc">불러오는 중...</div>
+    </div>
+
+    <div class="card">
+        <div>😷 미세먼지</div>
+        <div class="aqi" id="airQuality">--</div>
+    </div>
+
+    <div class="card location">
+        충청남도 당진시
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+/* =====================
+   Korean Holidays
+===================== */
+
+const holidays = {
+    "1-1": "신정",
+    "3-1": "삼일절",
+    "5-5": "어린이날",
+    "6-6": "현충일",
+    "8-15": "광복절",
+    "10-3": "개천절",
+    "10-9": "한글날",
+    "12-25": "성탄절"
+};
+
+/* =====================
+   Calendar
+===================== */
+
+function generateCalendar() {
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    const daysContainer = document.getElementById("calendarDays");
+    const title = document.getElementById("monthTitle");
+
+    title.innerText = `${year}년 ${month + 1}월`;
+
+    daysContainer.innerHTML = "";
+
+    // Empty cells
+    for (let i = 0; i < firstDay; i++) {
+        daysContainer.appendChild(document.createElement("div"));
+    }
+
+    for (let day = 1; day <= lastDate; day++) {
+
+        const cell = document.createElement("div");
+        const date = new Date(year, month, day);
+
+        const key = `${month + 1}-${day}`;
+
+        // Today
+        if (
+            day === now.getDate() &&
+            month === now.getMonth()
+        ) {
+            cell.classList.add("today");
+        }
+
+        // Sunday / Saturday
+        if (date.getDay() === 0) cell.classList.add("sun");
+        if (date.getDay() === 6) cell.classList.add("sat");
+
+        cell.innerHTML = `<strong>${day}</strong>`;
+
+        // Holiday
+        if (holidays[key]) {
+            cell.innerHTML += `<div class="holiday">${holidays[key]}</div>`;
+        }
+
+        daysContainer.appendChild(cell);
+    }
+}
+
+/* =====================
+   Clock
+===================== */
+
+function updateClock() {
+
+    const now = new Date();
+
+    const h = String(now.getHours()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+
+    document.getElementById("clock").innerText =
+        `${h}:${m}:${s}`;
+
+    document.getElementById("dateText").innerText =
+        now.toLocaleDateString("ko-KR", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+}
+
+/* =====================
+   Weather & Air
+===================== */
+
+const WEATHER_API_KEY = "PUT_YOUR_API_KEY_HERE";
+const CITY = "Dangjin,KR";
+
+async function loadWeather() {
+
+    if (!WEATHER_API_KEY || WEATHER_API_KEY === "PUT_YOUR_API_KEY_HERE") return;
+
+    try {
+
+        const res = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${WEATHER_API_KEY}&lang=kr`
+        );
+
+        const data = await res.json();
+
+        document.getElementById("weatherTemp").innerText =
+            `${Math.round(data.main.temp)}°C`;
+
+        document.getElementById("weatherDesc").innerText =
+            data.weather[0].description;
+
+    } catch {
+        document.getElementById("weatherDesc").innerText = "오류";
+    }
+}
+
+async function loadAirQuality() {
+
+    if (!WEATHER_API_KEY || WEATHER_API_KEY === "PUT_YOUR_API_KEY_HERE") return;
+
+    try {
+
+        const geo = await fetch(
+            `https://api.openweathermap.org/geo/1.0/direct?q=${CITY}&limit=1&appid=${WEATHER_API_KEY}`
+        );
+
+        const gdata = await geo.json();
+
+        const { lat, lon } = gdata[0];
+
+        const res = await fetch(
+            `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}`
+        );
+
+        const data = await res.json();
+
+        const aqi = data.list[0].main.aqi;
+
+        const map = {
+            1: "좋음 😊",
+            2: "보통 🙂",
+            3: "나쁨 😐",
+            4: "매우 나쁨 😷",
+            5: "위험 ☠️"
+        };
+
+        document.getElementById("airQuality").innerText = map[aqi];
+
+    } catch {
+        document.getElementById("airQuality").innerText = "오류";
+    }
+}
+
+/* =====================
+   Init
+===================== */
+
+generateCalendar();
+updateClock();
+
+loadWeather();
+loadAirQuality();
+
+// Clock
+setInterval(updateClock, 1000);
+
+// Refresh calendar monthly
+setInterval(generateCalendar, 3600000);
+
+// Weather refresh
+setInterval(() => {
+    loadWeather();
+    loadAirQuality();
+}, 600000);
+
+</script>
+
+</body>
+</html>
