@@ -4,12 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Auto refresh every 6 hours (TV stability) -->
+<!-- Auto refresh every 6 hours -->
 <meta http-equiv="refresh" content="21600">
 
 <title>당진 월간 캘린더</title>
 
 <style>
+
 /* =====================
    Base
 ===================== */
@@ -64,6 +65,8 @@ body {
     box-sizing: border-box;
 }
 
+/* Weekend */
+
 .sun {
     color: #ff4d4d;
 }
@@ -72,10 +75,19 @@ body {
     color: #38bdf8;
 }
 
+/* Holiday */
+
 .holiday {
-    color: #ff4d4d;
+    color: #ff6b6b;
     font-size: 12px;
+    margin-top: 4px;
 }
+
+.holiday-cell {
+    background: rgba(255, 77, 77, 0.12);
+}
+
+/* Today */
 
 .today {
     background: #1e293b;
@@ -118,6 +130,7 @@ body {
     font-size: 16px;
     color: #cbd5f5;
 }
+
 </style>
 </head>
 
@@ -180,7 +193,7 @@ body {
 <script>
 
 /* =====================
-   Korean Holidays
+   Korean Fixed Holidays
 ===================== */
 
 const holidays = {
@@ -234,7 +247,7 @@ function generateCalendar() {
             cell.classList.add("today");
         }
 
-        // Sunday / Saturday
+        // Weekend
         if (date.getDay() === 0) cell.classList.add("sun");
         if (date.getDay() === 6) cell.classList.add("sat");
 
@@ -242,7 +255,14 @@ function generateCalendar() {
 
         // Holiday
         if (holidays[key]) {
-            cell.innerHTML += `<div class="holiday">${holidays[key]}</div>`;
+
+            cell.classList.add("holiday-cell");
+
+            cell.innerHTML += `
+                <div class="holiday">
+                    ${holidays[key]}
+                </div>
+            `;
         }
 
         daysContainer.appendChild(cell);
@@ -350,13 +370,13 @@ updateClock();
 loadWeather();
 loadAirQuality();
 
-// Clock
+// Update clock
 setInterval(updateClock, 1000);
 
-// Refresh calendar monthly
+// Refresh calendar
 setInterval(generateCalendar, 3600000);
 
-// Weather refresh
+// Refresh weather
 setInterval(() => {
     loadWeather();
     loadAirQuality();
