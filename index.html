@@ -75,7 +75,7 @@ body {
     color: #f87171;
 }
 
-/* ================= TODAY PULSE ================= */
+/* ================= TODAY ================= */
 
 .today {
     border: 4px solid red;
@@ -135,11 +135,13 @@ body {
     text-align: center;
 }
 
-/* Video box */
-.video-box iframe {
+/* ================= VIDEO ================= */
+
+.video-box video {
     width: 100%;
-    height: 200px;
-    border-radius: 10px;
+    height: 220px;
+    border-radius: 12px;
+    background: black;
 }
 
 </style>
@@ -187,17 +189,15 @@ body {
             <p id="air">Loading...</p>
         </div>
 
-        <!-- 🎬 VIDEO -->
+        <!-- 🎬 LOCAL VIDEO -->
         <div class="info-box video-box">
+
             <h3>📺 안내 영상</h3>
 
-            <iframe
-                src="https://www.youtube.com/embed/wpXM8bOV_Bs?autoplay=1&mute=1&loop=1&playlist=wpXM8bOV_Bs&controls=0&modestbranding=1&rel=0"
-                title="YouTube video"
-                frameborder="0"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowfullscreen>
-            </iframe>
+            <video autoplay loop playsinline>
+                <source src="video.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
 
         </div>
 
@@ -286,7 +286,7 @@ function renderCalendar() {
     }
 }
 
-/* ================= HOLIDAY API ================= */
+/* ================= HOLIDAYS ================= */
 
 async function loadHolidays() {
 
