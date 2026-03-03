@@ -75,7 +75,7 @@ body {
     color: #f87171;
 }
 
-/* ================= TODAY ================= */
+/* ================= TODAY PULSE ================= */
 
 .today {
     border: 4px solid red;
@@ -104,27 +104,26 @@ body {
 
 .sidebar {
     background: #020617;
-    padding: 30px;
+    padding: 25px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
 .clock {
     text-align: center;
     font-size: 56px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .info-box {
     background: #1e293b;
-    padding: 20px;
+    padding: 18px;
     border-radius: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .info-box h3 {
-    margin: 0 0 10px;
+    margin: 0 0 8px;
     font-size: 22px;
     text-align: center;
 }
@@ -135,13 +134,24 @@ body {
     text-align: center;
 }
 
-/* ================= VIDEO ================= */
+/* Video */
 
-.video-box video {
+.video-box {
+    margin-top: auto;
+}
+
+.video-box iframe {
     width: 100%;
-    height: 220px;
+    height: 200px;
     border-radius: 12px;
-    background: black;
+    border: none;
+}
+
+.footer {
+    text-align:center;
+    font-size:14px;
+    opacity:0.6;
+    margin-top:8px;
 }
 
 </style>
@@ -189,26 +199,21 @@ body {
             <p id="air">Loading...</p>
         </div>
 
-        <!-- 🎬 LOCAL VIDEO -->
- <div class="info-box video-box">
-
-    <h3>📺 안내 영상</h3>
-
-    <iframe
-        width="100%"
-        height="220"
-        src="https://www.youtube.com/embed/wpXM8bOV_Bs?autoplay=1&loop=1&playlist=wpXM8bOV_Bs&mute=0&controls=0&rel=0&modestbranding=1"
-        frameborder="0"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowfullscreen>
-    </iframe>
-
-</div>
-
     </div>
 
-    <div style="text-align:center;font-size:14px;opacity:0.6">
-        Dangjin • Korea
+    <!-- Video -->
+    <div class="video-box">
+
+        <iframe
+            src="https://www.youtube.com/embed/wpXM8bOV_Bs?autoplay=1&mute=1&loop=1&playlist=wpXM8bOV_Bs"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+
+        <div class="footer">
+            Dangjin • Korea
+        </div>
+
     </div>
 
 </div>
@@ -220,14 +225,12 @@ body {
 /* ================= SETTINGS ================= */
 
 const API_KEY = "fa9fe37b9be14839fe6774643939e974";
-const CITY = "Dangjin-si,KR";
 
 /* ================= DATE ================= */
 
 let now = new Date();
 let month = now.getMonth();
 let year = now.getFullYear();
-
 const today = new Date();
 
 /* ================= HOLIDAYS ================= */
@@ -296,10 +299,10 @@ async function loadHolidays() {
 
     try {
 
-        const url =
-`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`;
+        const res = await fetch(
+            `https://date.nager.at/api/v3/PublicHolidays/${year}/KR`
+        );
 
-        const res = await fetch(url);
         const data = await res.json();
 
         holidays = {};
@@ -311,13 +314,11 @@ async function loadHolidays() {
             }
 
             holidays[h.date].push(h.localName);
-
         });
 
         renderCalendar();
 
     } catch {
-
         renderCalendar();
     }
 }
@@ -329,8 +330,8 @@ function updateClock() {
     const now = new Date();
 
     let h = now.getHours();
-    const m = String(now.getMinutes()).padStart(2, "0");
-    const s = String(now.getSeconds()).padStart(2, "0");
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
 
     const ampm = h >= 12 ? "PM" : "AM";
 
@@ -344,16 +345,27 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ================= WEATHER ================= */
+/* ================= WEATHER (FIXED) ================= */
 
 async function loadWeather() {
 
     try {
 
-        const url =
-`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${API_KEY}&units=metric`;
+        // Get GPS first
+        const geoRes = await fetch(
+            `https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`
+        );
 
-        const res = await fetch(url);
+        const geoData = await geoRes.json();
+
+        const lat = geoData[0].lat;
+        const lon = geoData[0].lon;
+
+        // Weather by GPS
+        const res = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+        );
+
         const data = await res.json();
 
         document.getElementById("weather").textContent =
@@ -361,7 +373,8 @@ async function loadWeather() {
 
     } catch {
 
-        document.getElementById("weather").textContent = "Unavailable";
+        document.getElementById("weather").textContent =
+            "Unavailable";
     }
 }
 
@@ -371,32 +384,53 @@ async function loadAir() {
 
     try {
 
-        const geo =
-`https://api.openweathermap.org/geo/1.0/direct?q=${CITY}&limit=1&appid=${API_KEY}`;
+        const geoRes = await fetch(
+            `https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`
+        );
 
-        const geoRes = await fetch(geo);
         const geoData = await geoRes.json();
 
         const lat = geoData[0].lat;
         const lon = geoData[0].lon;
 
-        const url =
-`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+        const res = await fetch(
+            `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`
+        );
 
-        const res = await fetch(url);
         const data = await res.json();
 
         const aqi = data.list[0].main.aqi;
 
-        const levels = ["Good","Fair","Moderate","Poor","Very Poor"];
+        const levels = [
+            "Good 😊",
+            "Fair 🙂",
+            "Moderate 😐",
+            "Poor 😷",
+            "Very Poor ☠️"
+        ];
 
         document.getElementById("air").textContent =
             levels[aqi-1];
 
     } catch {
 
-        document.getElementById("air").textContent = "Unavailable";
+        document.getElementById("air").textContent =
+            "Unavailable";
     }
+}
+
+/* ================= MIDNIGHT RELOAD ================= */
+
+function scheduleReload() {
+
+    const now = new Date();
+    const midnight = new Date();
+
+    midnight.setHours(24,0,0,0);
+
+    setTimeout(() => {
+        location.reload();
+    }, midnight - now);
 }
 
 /* ================= START ================= */
@@ -404,6 +438,7 @@ async function loadAir() {
 loadHolidays();
 loadWeather();
 loadAir();
+scheduleReload();
 
 setInterval(loadWeather, 600000);
 setInterval(loadAir, 600000);
