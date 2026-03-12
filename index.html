@@ -134,19 +134,25 @@ body {
     text-align: center;
 }
 
-/* Timer Styles */
-#timerContainer {
-    text-align: center;
+/* Dual Timer Styles */
+#dualTimerContainer {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
     margin-bottom: 15px;
 }
-#timerCanvas {
-    background: transparent;
+.timer-wrapper {
+    text-align: center;
+    width: 50%;
 }
-#periodLabel {
-    font-size: 24px;
+.period-status {
+    font-size: 16px;
     font-weight: bold;
     margin-top: -10px;
-    display: block;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Video */
@@ -212,9 +218,15 @@ body {
 
     </div>
 
-    <div id="timerContainer">
-        <canvas id="timerCanvas" width="220" height="220"></canvas>
-        <span id="periodLabel"></span>
+    <div id="dualTimerContainer">
+        <div class="timer-wrapper">
+            <canvas id="timerLeft" width="140" height="140"></canvas>
+            <div id="labelLeft" class="period-status"></div>
+        </div>
+        <div class="timer-wrapper">
+            <canvas id="timerRight" width="140" height="140"></canvas>
+            <div id="labelRight" class="period-status"></div>
+        </div>
     </div>
 
 <div class="info-box video-box">
@@ -243,7 +255,8 @@ body {
 
 const API_KEY = "fa9fe37b9be14839fe6774643939e974";
 
-const blocks = [
+// Group A: Lunch after 3rd Period (11:20)
+const blocksA = [
     { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
     { type: "class", label: "1교시", start: "09:00", end: "09:40" },
     { type: "break", label: "쉬는 시간", start: "09:40", end: "09:50" },
@@ -253,6 +266,23 @@ const blocks = [
     { type: "lunch", label: "점심 시간", start: "11:20", end: "12:20" },
     { type: "class", label: "4교시", start: "12:20", end: "13:00" },
     { type: "break", label: "쉬는 시간", start: "13:00", end: "13:10" },
+    { type: "class", label: "5교시", start: "13:10", end: "13:50" },
+    { type: "break", label: "쉬는 시간", start: "13:50", end: "14:00" },
+    { type: "class", label: "6교시", start: "14:00", end: "14:40" },
+    { type: "prep", label: "업무 시간", start: "14:40", end: "16:30" }
+];
+
+// Group B: Lunch after 4th Period
+const blocksB = [
+    { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
+    { type: "class", label: "1교시", start: "09:00", end: "09:40" },
+    { type: "break", label: "쉬는 시간", start: "09:40", end: "09:50" },
+    { type: "class", label: "2교시", start: "09:50", end: "10:30" },
+    { type: "break", label: "쉬는 시간", start: "10:30", end: "10:40" },
+    { type: "class", label: "3교시", start: "10:40", end: "11:20" },
+    { type: "break", label: "쉬는 시간", start: "11:20", end: "11:30" },
+    { type: "class", label: "4교시", start: "11:30", end: "12:10" },
+    { type: "lunch", label: "점심 시간", start: "12:10", end: "13:10" },
     { type: "class", label: "5교시", start: "13:10", end: "13:50" },
     { type: "break", label: "쉬는 시간", start: "13:50", end: "14:00" },
     { type: "class", label: "6교시", start: "14:00", end: "14:40" },
@@ -358,40 +388,19 @@ async function loadHolidays() {
 
 /* ================= CLOCK & TIMER ================= */
 
-const tCanvas = document.getElementById("timerCanvas");
-const tCtx = tCanvas.getContext("2d");
 function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
 
-function updateClock() {
-
-    const now = new Date();
-    let mins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext("2d");
+    const labelEl = document.getElementById(labelId);
     
-    // Digital Clock text
-    let h = now.getHours();
-    const m = String(now.getMinutes()).padStart(2,"0");
-    const s = String(now.getSeconds()).padStart(2,"0");
-    const ampm = h >= 12 ? "PM" : "AM";
-    h = h % 12 || 12;
-    document.getElementById("clock").textContent = `${h}:${m}:${s} ${ampm}`;
-
-    // Timer Logic
-    let pulseFactor = Math.sin(Date.now() / 1000 * Math.PI) * 2; 
-    tCtx.clearRect(0, 0, 220, 220);
+    ctx.clearRect(0, 0, 140, 140);
     
-    // Static white background circle
-    tCtx.beginPath(); tCtx.arc(110, 110, 95, 0, Math.PI * 2); tCtx.fillStyle = "rgba(255,255,255,0.05)"; tCtx.fill();
+    // Face background
+    ctx.beginPath(); ctx.arc(70, 70, 50, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.05)"; ctx.fill();
 
-    // Clock Face Ticks
-    for (let i = 0; i < 60; i++) {
-        let angle = i * Math.PI / 30; let isMajor = i % 5 === 0;
-        let x1 = 110 + Math.cos(angle) * (90 - (isMajor?10:4)); let y1 = 110 + Math.sin(angle) * (90 - (isMajor?10:4));
-        let x2 = 110 + Math.cos(angle) * 90; let y2 = 110 + Math.sin(angle) * 90;
-        tCtx.beginPath(); tCtx.moveTo(x1, y1); tCtx.lineTo(x2, y2);
-        tCtx.strokeStyle = isMajor ? "#475569" : "#1e293b"; tCtx.lineWidth = isMajor ? 3 : 1; tCtx.stroke();
-    }
-
-    let label = "휴식 시간 ✨";
+    let label = "휴식 ✨";
     let color = "#94a3b8";
     let total = 60;
     let remain = 0;
@@ -407,25 +416,39 @@ function updateClock() {
     // Pulsing Ring
     if (total > 0) {
         let percent = Math.max(0, Math.min(1, remain / total));
-        tCtx.beginPath();
-        tCtx.arc(110, 110, 100, -Math.PI / 2, -Math.PI / 2 + (percent * 2 * Math.PI), false);
-        tCtx.lineWidth = 8 + pulseFactor; 
-        tCtx.strokeStyle = color; tCtx.lineCap = "round"; tCtx.stroke();
+        ctx.beginPath();
+        ctx.arc(70, 70, 58, -Math.PI / 2, -Math.PI / 2 + (percent * 2 * Math.PI), false);
+        ctx.lineWidth = 6 + pulse; 
+        ctx.strokeStyle = color; ctx.lineCap = "round"; ctx.stroke();
     }
 
-    // Time inside Timer
-    tCtx.fillStyle = "white"; 
-    tCtx.font = "bold 32px Segoe UI"; 
-    tCtx.textAlign = "center";
-    tCtx.fillText(`${h}:${m}`, 110, 110); // Center slightly higher for AM/PM
+    // Grade Text in center
+    ctx.fillStyle = "white"; 
+    ctx.font = "bold 16px Segoe UI"; 
+    ctx.textAlign = "center";
+    ctx.fillText(groupLabel, 70, 75);
 
-    // AM/PM indicator inside Timer
-    tCtx.font = "bold 14px Segoe UI";
-    tCtx.fillStyle = color; // Colored AM/PM looks sharp
-    tCtx.fillText(ampm, 110, 130);
+    labelEl.textContent = label;
+    labelEl.style.color = color;
+}
 
-    document.getElementById("periodLabel").textContent = label;
-    document.getElementById("periodLabel").style.color = color;
+function updateClock() {
+
+    const now = new Date();
+    let mins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    let pulse = Math.sin(Date.now() / 1000 * Math.PI) * 1.5;
+    
+    // Digital Clock text
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    document.getElementById("clock").textContent = `${h}:${m}:${s} ${ampm}`;
+
+    // Draw Dual Timers
+    drawRing("timerLeft", "labelLeft", "1·4·6학년", blocksA, mins, pulse);
+    drawRing("timerRight", "labelRight", "2·3·5학년", blocksB, mins, pulse);
 
     requestAnimationFrame(updateClock);
 }
