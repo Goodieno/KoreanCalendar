@@ -104,9 +104,10 @@ body {
 
 .sidebar {
     background: #020617;
-    padding: 25px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden; /* Prevent horizontal scroll with large timers */
 }
 
 .clock {
@@ -134,22 +135,22 @@ body {
     text-align: center;
 }
 
-/* Dual Timer Styles */
+/* Larger Horizontal Dual Timer Styles */
 #dualTimerContainer {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 .timer-wrapper {
     text-align: center;
     width: 50%;
 }
 .period-status {
-    font-size: 16px;
+    font-size: 18px; /* Balanced size for horizontal layout */
     font-weight: bold;
     margin-top: -10px;
-    min-height: 40px;
+    min-height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,13 +169,6 @@ body {
     border: none;
 }
 
-.footer {
-    text-align:center;
-    font-size:14px;
-    opacity:0.6;
-    margin-top:8px;
-}
-
 </style>
 </head>
 
@@ -183,9 +177,7 @@ body {
 <div class="container">
 
 <div class="calendar">
-
     <div class="header" id="monthYear"></div>
-
     <div class="weekdays">
         <div class="sun">일</div>
         <div>월</div>
@@ -195,57 +187,51 @@ body {
         <div>금</div>
         <div class="sat">토</div>
     </div>
-
     <div class="days" id="days"></div>
-
 </div>
 
 <div class="sidebar">
 
     <div>
-
         <div class="clock" id="clock"></div>
-
         <div class="info-box">
             <h3>🌤 Weather</h3>
             <p id="weather">Loading...</p>
         </div>
-
         <div class="info-box">
             <h3>😷 Air Quality</h3>
             <p id="air">Loading...</p>
         </div>
-
     </div>
 
     <div id="dualTimerContainer">
         <div class="timer-wrapper">
-            <canvas id="timerLeft" width="140" height="140"></canvas>
+            <canvas id="timerLeft" width="220" height="220" style="width: 100%; height: auto;"></canvas>
             <div id="labelLeft" class="period-status"></div>
         </div>
         <div class="timer-wrapper">
-            <canvas id="timerRight" width="140" height="140"></canvas>
+            <canvas id="timerRight" width="220" height="220" style="width: 100%; height: auto;"></canvas>
             <div id="labelRight" class="period-status"></div>
         </div>
     </div>
 
-<div class="info-box video-box">
-    <h3>📺 안내 영상</h3>
-    <iframe
-        src="https://www.youtube.com/embed/EZFLPCqa3tI?autoplay=1&loop=1&playlist=EZFLPCqa3tI"
-        title="YouTube video player"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen>
-    </iframe>
-</div>
+    <div class="info-box video-box">
+        <h3>📺 안내 영상</h3>
+        <iframe
+            src="https://www.youtube.com/embed/EZFLPCqa3tI?autoplay=1&loop=1&playlist=EZFLPCqa3tI"
+            title="YouTube video player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen>
+        </iframe>
+    </div>
 
     <div style="text-align:center;font-size:14px;opacity:0.6; padding-top: 10px;">
         Dangjin • Korea
     </div>
 
-    </div>
+</div>
 
 </div>
 
@@ -255,7 +241,7 @@ body {
 
 const API_KEY = "fa9fe37b9be14839fe6774643939e974";
 
-// Group A: Lunch after 3rd Period (11:20)
+// Group A: Lunch after 3rd Period
 const blocksA = [
     { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
     { type: "class", label: "1교시", start: "09:00", end: "09:40" },
@@ -289,61 +275,27 @@ const blocksB = [
     { type: "prep", label: "업무 시간", start: "14:40", end: "16:30" }
 ];
 
-/* ================= DATE ================= */
-
-let now = new Date();
-let month = now.getMonth();
-let year = now.getFullYear();
-const today = new Date();
-
-/* ================= HOLIDAYS ================= */
-
-let holidays = {};
+function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
 
 /* ================= CALENDAR ================= */
 
 function renderCalendar() {
-
     const daysEl = document.getElementById("days");
     const header = document.getElementById("monthYear");
-
     daysEl.innerHTML = "";
-
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
-
     header.textContent = `${year}년 ${month + 1}월`;
-
-    for (let i = 0; i < firstDay; i++) {
-        daysEl.appendChild(document.createElement("div"));
-    }
-
+    for (let i = 0; i < firstDay; i++) { daysEl.appendChild(document.createElement("div")); }
     for (let day = 1; day <= lastDate; day++) {
-
         const cell = document.createElement("div");
         cell.classList.add("day");
-
-        const dateStr =
-            `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-
+        const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
         cell.innerHTML = `<div>${day}</div>`;
-
-        if ((firstDay + day - 1) % 7 === 0) {
-            cell.classList.add("red");
-        }
-
-        if (
-            day === today.getDate() &&
-            month === today.getMonth() &&
-            year === today.getFullYear()
-        ) {
-            cell.classList.add("today");
-        }
-
+        if ((firstDay + day - 1) % 7 === 0) cell.classList.add("red");
+        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) cell.classList.add("today");
         if (holidays[dateStr]) {
-
             cell.classList.add("red");
-
             holidays[dateStr].forEach(name => {
                 const h = document.createElement("div");
                 h.className = "holiday";
@@ -351,54 +303,30 @@ function renderCalendar() {
                 cell.appendChild(h);
             });
         }
-
         daysEl.appendChild(cell);
     }
 }
 
-/* ================= HOLIDAYS ================= */
-
 async function loadHolidays() {
-
     try {
-
-        const res = await fetch(
-            `https://date.nager.at/api/v3/PublicHolidays/${year}/KR`
-        );
-
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`);
         const data = await res.json();
-
         holidays = {};
-
-        data.forEach(h => {
-
-            if (!holidays[h.date]) {
-                holidays[h.date] = [];
-            }
-
-            holidays[h.date].push(h.localName);
-        });
-
+        data.forEach(h => { if (!holidays[h.date]) holidays[h.date] = []; holidays[h.date].push(h.localName); });
         renderCalendar();
-
-    } catch {
-        renderCalendar();
-    }
+    } catch { renderCalendar(); }
 }
 
 /* ================= CLOCK & TIMER ================= */
-
-function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
 
 function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
     const canvas = document.getElementById(canvasId);
     const ctx = canvas.getContext("2d");
     const labelEl = document.getElementById(labelId);
+    ctx.clearRect(0, 0, 220, 220);
     
-    ctx.clearRect(0, 0, 140, 140);
-    
-    // Face background
-    ctx.beginPath(); ctx.arc(70, 70, 50, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.05)"; ctx.fill();
+    // Background Circle
+    ctx.beginPath(); ctx.arc(110, 110, 85, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.05)"; ctx.fill();
 
     let label = "휴식 ✨";
     let color = "#94a3b8";
@@ -413,32 +341,30 @@ function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
         remain = toMin(active.end) - mins;
     }
 
-    // Pulsing Ring
+    // Larger, Thicker Pulsing Ring
     if (total > 0) {
         let percent = Math.max(0, Math.min(1, remain / total));
         ctx.beginPath();
-        ctx.arc(70, 70, 58, -Math.PI / 2, -Math.PI / 2 + (percent * 2 * Math.PI), false);
-        ctx.lineWidth = 6 + pulse; 
+        ctx.arc(110, 110, 95, -Math.PI / 2, -Math.PI / 2 + (percent * 2 * Math.PI), false);
+        ctx.lineWidth = 10 + pulse; 
         ctx.strokeStyle = color; ctx.lineCap = "round"; ctx.stroke();
     }
 
-    // Grade Text in center
+    // Grade Text
     ctx.fillStyle = "white"; 
-    ctx.font = "bold 16px Segoe UI"; 
+    ctx.font = "bold 22px Segoe UI"; 
     ctx.textAlign = "center";
-    ctx.fillText(groupLabel, 70, 75);
+    ctx.fillText(groupLabel, 110, 118);
 
     labelEl.textContent = label;
     labelEl.style.color = color;
 }
 
 function updateClock() {
-
     const now = new Date();
     let mins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
     let pulse = Math.sin(Date.now() / 1000 * Math.PI) * 1.5;
     
-    // Digital Clock text
     let h = now.getHours();
     const m = String(now.getMinutes()).padStart(2,"0");
     const s = String(now.getSeconds()).padStart(2,"0");
@@ -446,112 +372,48 @@ function updateClock() {
     h = h % 12 || 12;
     document.getElementById("clock").textContent = `${h}:${m}:${s} ${ampm}`;
 
-    // Draw Dual Timers
     drawRing("timerLeft", "labelLeft", "1·4·6학년", blocksA, mins, pulse);
     drawRing("timerRight", "labelRight", "2·3·5학년", blocksB, mins, pulse);
 
     requestAnimationFrame(updateClock);
 }
 
-requestAnimationFrame(updateClock);
-
-/* ================= WEATHER (FIXED) ================= */
+/* ================= WEATHER & AIR ================= */
 
 async function loadWeather() {
-
     try {
-
-        const geoRes = await fetch(
-            `https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`
-        );
-
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`);
         const geoData = await geoRes.json();
-
-        const lat = geoData[0].lat;
-        const lon = geoData[0].lon;
-
-        const res = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
-        );
-
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${geoData[0].lat}&lon=${geoData[0].lon}&appid=${API_KEY}&units=metric`);
         const data = await res.json();
-
-        document.getElementById("weather").textContent =
-            `${data.weather[0].main} / ${data.main.temp.toFixed(1)}°C`;
-
-    } catch {
-
-        document.getElementById("weather").textContent =
-            "Unavailable";
-    }
+        document.getElementById("weather").textContent = `${data.weather[0].main} / ${data.main.temp.toFixed(1)}°C`;
+    } catch { document.getElementById("weather").textContent = "Unavailable"; }
 }
-
-/* ================= AIR ================= */
 
 async function loadAir() {
-
     try {
-
-        const geoRes = await fetch(
-            `https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`
-        );
-
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`);
         const geoData = await geoRes.json();
-
-        const lat = geoData[0].lat;
-        const lon = geoData[0].lon;
-
-        const res = await fetch(
-            `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`
-        );
-
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${geoData[0].lat}&lon=${geoData[0].lon}&appid=${API_KEY}`);
         const data = await res.json();
-
-        const aqi = data.list[0].main.aqi;
-
-        const levels = [
-            "Good 😊",
-            "Fair 🙂",
-            "Moderate 😐",
-            "Poor 😷",
-            "Very Poor ☠️"
-        ];
-
-        document.getElementById("air").textContent =
-            levels[aqi-1];
-
-    } catch {
-
-        document.getElementById("air").textContent =
-            "Unavailable";
-    }
+        const levels = ["Good 😊", "Fair 🙂", "Moderate 😐", "Poor 😷", "Very Poor ☠️"];
+        document.getElementById("air").textContent = levels[data.list[0].main.aqi-1];
+    } catch { document.getElementById("air").textContent = "Unavailable"; }
 }
-
-/* ================= MIDNIGHT RELOAD ================= */
 
 function scheduleReload() {
-
-    const now = new Date();
-    const midnight = new Date();
-
-    midnight.setHours(24,0,0,0);
-
-    setTimeout(() => {
-        location.reload();
-    }, midnight - now);
+    const midnight = new Date(); midnight.setHours(24,0,0,0);
+    setTimeout(() => { location.reload(); }, midnight - new Date());
 }
-
-/* ================= START ================= */
 
 loadHolidays();
 loadWeather();
 loadAir();
 scheduleReload();
-
+requestAnimationFrame(updateClock);
 setInterval(loadWeather, 600000);
 setInterval(loadAir, 600000);
 
 </script>
-
 </body>
 </html>
