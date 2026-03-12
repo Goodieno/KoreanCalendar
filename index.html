@@ -107,7 +107,6 @@ body {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden; /* Prevent horizontal scroll with large timers */
 }
 
 .clock {
@@ -135,7 +134,7 @@ body {
     text-align: center;
 }
 
-/* Larger Horizontal Dual Timer Styles */
+/* Horizontal Dual Timer Styles */
 #dualTimerContainer {
     display: flex;
     justify-content: space-between;
@@ -147,7 +146,7 @@ body {
     width: 50%;
 }
 .period-status {
-    font-size: 18px; /* Balanced size for horizontal layout */
+    font-size: 18px;
     font-weight: bold;
     margin-top: -10px;
     min-height: 45px;
@@ -275,9 +274,15 @@ const blocksB = [
     { type: "prep", label: "업무 시간", start: "14:40", end: "16:30" }
 ];
 
+let now = new Date();
+let month = now.getMonth();
+let year = now.getFullYear();
+const today = new Date();
+let holidays = {};
+
 function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
 
-/* ================= CALENDAR ================= */
+/* ================= CALENDAR LOGIC (RESTORED) ================= */
 
 function renderCalendar() {
     const daysEl = document.getElementById("days");
@@ -317,7 +322,7 @@ async function loadHolidays() {
     } catch { renderCalendar(); }
 }
 
-/* ================= CLOCK & TIMER ================= */
+/* ================= TIMER DRAWING ================= */
 
 function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
     const canvas = document.getElementById(canvasId);
@@ -325,7 +330,6 @@ function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
     const labelEl = document.getElementById(labelId);
     ctx.clearRect(0, 0, 220, 220);
     
-    // Background Circle
     ctx.beginPath(); ctx.arc(110, 110, 85, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.05)"; ctx.fill();
 
     let label = "휴식 ✨";
@@ -341,7 +345,6 @@ function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
         remain = toMin(active.end) - mins;
     }
 
-    // Larger, Thicker Pulsing Ring
     if (total > 0) {
         let percent = Math.max(0, Math.min(1, remain / total));
         ctx.beginPath();
@@ -350,7 +353,6 @@ function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
         ctx.strokeStyle = color; ctx.lineCap = "round"; ctx.stroke();
     }
 
-    // Grade Text
     ctx.fillStyle = "white"; 
     ctx.font = "bold 22px Segoe UI"; 
     ctx.textAlign = "center";
@@ -405,6 +407,8 @@ function scheduleReload() {
     const midnight = new Date(); midnight.setHours(24,0,0,0);
     setTimeout(() => { location.reload(); }, midnight - new Date());
 }
+
+/* ================= START ================= */
 
 loadHolidays();
 loadWeather();
