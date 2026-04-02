@@ -278,7 +278,37 @@ let now = new Date();
 let month = now.getMonth();
 let year = now.getFullYear();
 const today = new Date();
-let holidays = {};
+
+// PRE-LOADED TABDONG SCHOOL HOLIDAYS 2026-2027
+let holidays = {
+    "2026-03-01": ["삼일절"],
+    "2026-03-02": ["대체공휴일"],
+    "2026-03-03": ["입학식"],
+    "2026-05-04": ["재량휴업일"],
+    "2026-05-05": ["어린이날"],
+    "2026-05-24": ["부처님오신날"],
+    "2026-05-25": ["대체공휴일"],
+    "2026-06-03": ["지방선거"],
+    "2026-06-06": ["현충일"],
+    "2026-07-17": ["제헌절"],
+    "2026-07-24": ["여름방학식"],
+    "2026-08-15": ["광복절"],
+    "2026-08-17": ["대체공휴일"],
+    "2026-08-25": ["2학기 개학식"],
+    "2026-09-24": ["추석연휴"],
+    "2026-09-25": ["추석"],
+    "2026-09-26": ["추석연휴"],
+    "2026-10-03": ["개천절"],
+    "2026-10-05": ["대체공휴일"],
+    "2026-10-09": ["한글날"],
+    "2026-12-25": ["성탄절"],
+    "2027-01-01": ["신정"],
+    "2027-01-08": ["졸업식/종업식"],
+    "2027-02-06": ["설날연휴"],
+    "2027-02-07": ["설날"],
+    "2027-02-08": ["설날연휴"],
+    "2027-02-09": ["대체공휴일"]
+};
 
 function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
 
@@ -316,10 +346,16 @@ async function loadHolidays() {
     try {
         const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`);
         const data = await res.json();
-        holidays = {};
-        data.forEach(h => { if (!holidays[h.date]) holidays[h.date] = []; holidays[h.date].push(h.localName); });
+        // Adds official holidays only if they aren't already in our school-specific list
+        data.forEach(h => { 
+            if (!holidays[h.date]) {
+                holidays[h.date] = [h.localName]; 
+            }
+        });
         renderCalendar();
-    } catch { renderCalendar(); }
+    } catch { 
+        renderCalendar(); 
+    }
 }
 
 /* ================= TIMER DRAWING ================= */
