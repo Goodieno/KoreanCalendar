@@ -134,7 +134,7 @@ body {
     text-align: center;
 }
 
-/* Horizontal Dual Timer Styles */
+/* Larger Horizontal Dual Timer Styles */
 #dualTimerContainer {
     display: flex;
     justify-content: space-between;
@@ -155,15 +155,15 @@ body {
     justify-content: center;
 }
 
-/* Video Fix: Positioned in corner and properly sized */
+/* Video */
 
 .video-box {
-    margin-top: auto; 
+    margin-top: auto;
 }
 
 .video-box iframe {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 200px;
     border-radius: 12px;
     border: none;
 }
@@ -217,7 +217,7 @@ body {
     <div class="info-box video-box">
         <h3>📺 안내 영상</h3>
         <iframe
-            src="https://www.youtube.com/embed/IAbhGzSgi1w?autoplay=1&playsinline=1&loop=1&playlist=IAbhGzSgi1w"
+            src="https://www.youtube.com/embed/EZFLPCqa3tI?autoplay=1&loop=1&playlist=EZFLPCqa3tI"
             title="YouTube video player"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -240,7 +240,6 @@ body {
 
 const API_KEY = "fa9fe37b9be14839fe6774643939e974";
 
-// Group A: Lunch after 3rd Period
 const blocksA = [
     { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
     { type: "class", label: "1교시", start: "09:00", end: "09:40" },
@@ -257,7 +256,6 @@ const blocksA = [
     { type: "prep", label: "업무 시간", start: "14:40", end: "16:30" }
 ];
 
-// Group B: Lunch after 4th Period
 const blocksB = [
     { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
     { type: "class", label: "1교시", start: "09:00", end: "09:40" },
@@ -278,41 +276,11 @@ let now = new Date();
 let month = now.getMonth();
 let year = now.getFullYear();
 const today = new Date();
-
-// PRE-LOADED TABDONG SCHOOL HOLIDAYS 2026-2027
-let holidays = {
-    "2026-03-01": ["삼일절"],
-    "2026-03-02": ["대체공휴일"],
-    "2026-03-03": ["입학식"],
-    "2026-05-04": ["재량휴업일"],
-    "2026-05-05": ["어린이날"],
-    "2026-05-24": ["부처님오신날"],
-    "2026-05-25": ["대체공휴일"],
-    "2026-06-03": ["지방선거"],
-    "2026-06-06": ["현충일"],
-    "2026-07-17": ["제헌절"],
-    "2026-07-24": ["여름방학식"],
-    "2026-08-15": ["광복절"],
-    "2026-08-17": ["대체공휴일"],
-    "2026-08-25": ["2학기 개학식"],
-    "2026-09-24": ["추석연휴"],
-    "2026-09-25": ["추석"],
-    "2026-09-26": ["추석연휴"],
-    "2026-10-03": ["개천절"],
-    "2026-10-05": ["대체공휴일"],
-    "2026-10-09": ["한글날"],
-    "2026-12-25": ["성탄절"],
-    "2027-01-01": ["신정"],
-    "2027-01-08": ["졸업식/종업식"],
-    "2027-02-06": ["설날연휴"],
-    "2027-02-07": ["설날"],
-    "2027-02-08": ["설날연휴"],
-    "2027-02-09": ["대체공휴일"]
-};
+let holidays = {};
 
 function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
 
-/* ================= CALENDAR LOGIC (RESTORED) ================= */
+/* ================= CALENDAR ================= */
 
 function renderCalendar() {
     const daysEl = document.getElementById("days");
@@ -346,19 +314,13 @@ async function loadHolidays() {
     try {
         const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`);
         const data = await res.json();
-        // Adds official holidays only if they aren't already in our school-specific list
-        data.forEach(h => { 
-            if (!holidays[h.date]) {
-                holidays[h.date] = [h.localName]; 
-            }
-        });
+        holidays = {};
+        data.forEach(h => { if (!holidays[h.date]) holidays[h.date] = []; holidays[h.date].push(h.localName); });
         renderCalendar();
-    } catch { 
-        renderCalendar(); 
-    }
+    } catch { renderCalendar(); }
 }
 
-/* ================= TIMER DRAWING ================= */
+/* ================= TIMER ================= */
 
 function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
     const canvas = document.getElementById(canvasId);
@@ -439,9 +401,19 @@ async function loadAir() {
     } catch { document.getElementById("air").textContent = "Unavailable"; }
 }
 
-function scheduleReload() {
+/* ================= UPDATED REFRESH LOGIC ================= */
+
+function scheduleRefresh() {
+    // Hard reload ONLY at midnight to flip calendar date
     const midnight = new Date(); midnight.setHours(24,0,0,0);
     setTimeout(() => { location.reload(); }, midnight - new Date());
+
+    // Silent background refresh every 30 mins
+    setInterval(() => {
+        loadHolidays();
+        loadWeather();
+        loadAir();
+    }, 30 * 60 * 1000);
 }
 
 /* ================= START ================= */
@@ -449,10 +421,10 @@ function scheduleReload() {
 loadHolidays();
 loadWeather();
 loadAir();
-scheduleReload();
+scheduleRefresh();
 requestAnimationFrame(updateClock);
-setInterval(loadWeather, 600000);
-setInterval(loadAir, 600000);
+setInterval(loadWeather, 600000); // UI weather check
+setInterval(loadAir, 600000);     // UI air check
 
 </script>
 </body>
