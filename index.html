@@ -155,8 +155,7 @@ body {
     justify-content: center;
 }
 
-/* Video */
-
+/* Video Section */
 .video-box {
     margin-top: auto;
 }
@@ -217,7 +216,7 @@ body {
     <div class="info-box video-box">
         <h3>📺 안내 영상</h3>
         <iframe
-            src="https://www.youtube.com/embed/EZFLPCqa3tI?autoplay=1&loop=1&playlist=EZFLPCqa3tI"
+            src="https://www.youtube.com/embed/iLZbRyLwdgo?autoplay=1&loop=1&playlist=iLZbRyLwdgo&start=200"
             title="YouTube video player"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -401,14 +400,12 @@ async function loadAir() {
     } catch { document.getElementById("air").textContent = "Unavailable"; }
 }
 
-/* ================= UPDATED REFRESH LOGIC ================= */
+/* ================= SILENT BACKGROUND REFRESH ================= */
 
 function scheduleRefresh() {
-    // Hard reload ONLY at midnight to flip calendar date
     const midnight = new Date(); midnight.setHours(24,0,0,0);
     setTimeout(() => { location.reload(); }, midnight - new Date());
 
-    // Silent background refresh every 30 mins
     setInterval(() => {
         loadHolidays();
         loadWeather();
@@ -423,8 +420,8 @@ loadWeather();
 loadAir();
 scheduleRefresh();
 requestAnimationFrame(updateClock);
-setInterval(loadWeather, 600000); // UI weather check
-setInterval(loadAir, 600000);     // UI air check
+setInterval(loadWeather, 600000);
+setInterval(loadAir, 600000);
 
 </script>
 </body>
