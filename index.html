@@ -14,7 +14,6 @@ body {
     font-family: "Segoe UI", Arial, sans-serif;
     background: #0f172a;
     color: white;
-    zoom: 1.2; /* ✅ ONLY CHANGE */
 }
 
 .container {
@@ -22,7 +21,7 @@ body {
     grid-template-columns: 3fr 1fr;
     height: 100vh;
 }
- 
+
 /* ================= CALENDAR ================= */
 
 .calendar {
@@ -235,4 +234,195 @@ body {
 </div>
 
 <script>
-/* (UNCHANGED JS) */
+
+/* ================= SETTINGS ================= */
+
+const API_KEY = "fa9fe37b9be14839fe6774643939e974";
+
+const blocksA = [
+    { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
+    { type: "class", label: "1교시", start: "09:00", end: "09:40" },
+    { type: "break", label: "쉬는 시간", start: "09:40", end: "09:50" },
+    { type: "class", label: "2교시", start: "09:50", end: "10:30" },
+    { type: "break", label: "쉬는 시간", start: "10:30", end: "10:40" },
+    { type: "class", label: "3교시", start: "10:40", end: "11:20" },
+    { type: "lunch", label: "점심 시간", start: "11:20", end: "12:20" },
+    { type: "class", label: "4교시", start: "12:20", end: "13:00" },
+    { type: "break", label: "쉬는 시간", start: "13:00", end: "13:10" },
+    { type: "class", label: "5교시", start: "13:10", end: "13:50" },
+    { type: "break", label: "쉬는 시간", start: "13:50", end: "14:00" },
+    { type: "class", label: "6교시", start: "14:00", end: "14:40" },
+    { type: "prep", label: "업무 시간", start: "14:40", end: "16:30" }
+];
+
+const blocksB = [
+    { type: "prep", label: "준비 시간", start: "08:30", end: "09:00" },
+    { type: "class", label: "1교시", start: "09:00", end: "09:40" },
+    { type: "break", label: "쉬는 시간", start: "09:40", end: "09:50" },
+    { type: "class", label: "2교시", start: "09:50", end: "10:30" },
+    { type: "break", label: "쉬는 시간", start: "10:30", end: "10:40" },
+    { type: "class", label: "3교시", start: "10:40", end: "11:20" },
+    { type: "break", label: "쉬는 시간", start: "11:20", end: "11:30" },
+    { type: "class", label: "4교시", start: "11:30", end: "12:10" },
+    { type: "lunch", label: "점심 시간", start: "12:10", end: "13:10" },
+    { type: "class", label: "5교시", start: "13:10", end: "13:50" },
+    { type: "break", label: "쉬는 시간", start: "13:50", end: "14:00" },
+    { type: "class", label: "6교시", start: "14:00", end: "14:40" },
+    { type: "prep", label: "업무 시간", start: "14:40", end: "16:30" }
+];
+
+let now = new Date();
+let month = now.getMonth();
+let year = now.getFullYear();
+const today = new Date();
+let holidays = {};
+
+function toMin(t){ let[h,m]=t.split(":"); return h*60+parseInt(m); }
+
+/* ================= CALENDAR ================= */
+
+function renderCalendar() {
+    const daysEl = document.getElementById("days");
+    const header = document.getElementById("monthYear");
+    daysEl.innerHTML = "";
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    header.textContent = `${year}년 ${month + 1}월`;
+    for (let i = 0; i < firstDay; i++) { daysEl.appendChild(document.createElement("div")); }
+    for (let day = 1; day <= lastDate; day++) {
+        const cell = document.createElement("div");
+        cell.classList.add("day");
+        const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+        cell.innerHTML = `<div>${day}</div>`;
+        if ((firstDay + day - 1) % 7 === 0) cell.classList.add("red");
+        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) cell.classList.add("today");
+        if (holidays[dateStr]) {
+            cell.classList.add("red");
+            holidays[dateStr].forEach(name => {
+                const h = document.createElement("div");
+                h.className = "holiday";
+                h.textContent = name;
+                cell.appendChild(h);
+            });
+        }
+        daysEl.appendChild(cell);
+    }
+}
+
+async function loadHolidays() {
+    try {
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/KR`);
+        const data = await res.json();
+        holidays = {};
+        data.forEach(h => { if (!holidays[h.date]) holidays[h.date] = []; holidays[h.date].push(h.localName); });
+        renderCalendar();
+    } catch { renderCalendar(); }
+}
+
+/* ================= TIMER ================= */
+
+function drawRing(canvasId, labelId, groupLabel, blocks, mins, pulse) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext("2d");
+    const labelEl = document.getElementById(labelId);
+    ctx.clearRect(0, 0, 220, 220);
+    
+    ctx.beginPath(); ctx.arc(110, 110, 85, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.05)"; ctx.fill();
+
+    let label = "휴식 ✨";
+    let color = "#94a3b8";
+    let total = 60;
+    let remain = 0;
+
+    let active = blocks.find(b => mins >= toMin(b.start) && mins < toMin(b.end));
+    if (active) {
+        label = active.label;
+        color = active.type === "class" ? "#f87171" : (active.type === "prep" ? "#a3e635" : "#fbbf24");
+        total = toMin(active.end) - toMin(active.start);
+        remain = toMin(active.end) - mins;
+    }
+
+    if (total > 0) {
+        let percent = Math.max(0, Math.min(1, remain / total));
+        ctx.beginPath();
+        ctx.arc(110, 110, 95, -Math.PI / 2, -Math.PI / 2 + (percent * 2 * Math.PI), false);
+        ctx.lineWidth = 10 + pulse; 
+        ctx.strokeStyle = color; ctx.lineCap = "round"; ctx.stroke();
+    }
+
+    ctx.fillStyle = "white"; 
+    ctx.font = "bold 22px Segoe UI"; 
+    ctx.textAlign = "center";
+    ctx.fillText(groupLabel, 110, 118);
+
+    labelEl.textContent = label;
+    labelEl.style.color = color;
+}
+
+function updateClock() {
+    const now = new Date();
+    let mins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    let pulse = Math.sin(Date.now() / 1000 * Math.PI) * 1.5;
+    
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    document.getElementById("clock").textContent = `${h}:${m}:${s} ${ampm}`;
+
+    drawRing("timerLeft", "labelLeft", "1·4·6학년", blocksA, mins, pulse);
+    drawRing("timerRight", "labelRight", "2·3·5학년", blocksB, mins, pulse);
+
+    requestAnimationFrame(updateClock);
+}
+
+/* ================= WEATHER & AIR ================= */
+
+async function loadWeather() {
+    try {
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`);
+        const geoData = await geoRes.json();
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${geoData[0].lat}&lon=${geoData[0].lon}&appid=${API_KEY}&units=metric`);
+        const data = await res.json();
+        document.getElementById("weather").textContent = `${data.weather[0].main} / ${data.main.temp.toFixed(1)}°C`;
+    } catch { document.getElementById("weather").textContent = "Unavailable"; }
+}
+
+async function loadAir() {
+    try {
+        const geoRes = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=Dangjin,KR&limit=1&appid=${API_KEY}`);
+        const geoData = await geoRes.json();
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${geoData[0].lat}&lon=${geoData[0].lon}&appid=${API_KEY}`);
+        const data = await res.json();
+        const levels = ["Good 😊", "Fair 🙂", "Moderate 😐", "Poor 😷", "Very Poor ☠️"];
+        document.getElementById("air").textContent = levels[data.list[0].main.aqi-1];
+    } catch { document.getElementById("air").textContent = "Unavailable"; }
+}
+
+/* ================= SILENT BACKGROUND REFRESH ================= */
+
+function scheduleRefresh() {
+    const midnight = new Date(); midnight.setHours(24,0,0,0);
+    setTimeout(() => { location.reload(); }, midnight - new Date());
+
+    setInterval(() => {
+        loadHolidays();
+        loadWeather();
+        loadAir();
+    }, 30 * 60 * 1000);
+}
+
+/* ================= START ================= */
+
+loadHolidays();
+loadWeather();
+loadAir();
+scheduleRefresh();
+requestAnimationFrame(updateClock);
+setInterval(loadWeather, 600000);
+setInterval(loadAir, 600000);
+
+</script>
+</body>
+</html>
