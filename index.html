@@ -14,21 +14,13 @@ body {
     font-family: "Segoe UI", Arial, sans-serif;
     background: #0f172a;
     color: white;
-}
-
-/* ✅ ADDED: SCALE WRAPPER */
-#scale-wrapper {
-    transform: scale(1.2);
-    transform-origin: top left;
-    width: 83.33%;
-    height: 83.33%;
+    zoom: 1.2; /* ✅ ONLY CHANGE */
 }
 
 .container {
     display: grid;
     grid-template-columns: 3fr 1fr;
     height: 100vh;
-    overflow: hidden; /* ✅ ADDED */
 }
 
 /* ================= CALENDAR ================= */
@@ -114,7 +106,6 @@ body {
 .sidebar {
     background: #020617;
     padding: 20px;
-    padding-bottom: 20px; /* ✅ ADDED */
     display: flex;
     flex-direction: column;
 }
@@ -182,9 +173,6 @@ body {
 
 <body>
 
-<!-- ✅ ADDED WRAPPER -->
-<div id="scale-wrapper">
-
 <div class="container">
 
 <div class="calendar">
@@ -246,7 +234,5 @@ body {
 
 </div>
 
-</div> <!-- ✅ END WRAPPER -->
-
 <script>
-/* (UNCHANGED JS BELOW) */
+/* (UNCHANGED JS) */
