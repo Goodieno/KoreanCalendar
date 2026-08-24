@@ -216,13 +216,25 @@ body {
     <div class="info-box video-box">
         <h3>📺 안내 영상</h3>
 <iframe
-    src="https://www.youtube.com/embed/IAbhGzSgi1w?autoplay=1&mute=1&loop=1&playlist=IAbhGzSgi1w"
+    id="youtubePlayer"
+    src="https://www.youtube.com/embed/IAbhGzSgi1w?autoplay=1&loop=1&playlist=IAbhGzSgi1w"
     title="YouTube video player"
     frameborder="0"
-    allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    referrerpolicy="strict-origin-when-cross-origin"
+    allow="autoplay; encrypted-media; picture-in-picture"
     allowfullscreen>
 </iframe>
+
+<script>
+setTimeout(() => {
+    const player = document.getElementById("youtubePlayer");
+
+    player.contentWindow.postMessage(JSON.stringify({
+        event: "command",
+        func: "unMute",
+        args: []
+    }), "*");
+}, 30000);
+</script>
     </div>
 
     <div style="text-align:center;font-size:14px;opacity:0.6; padding-top: 10px;">
